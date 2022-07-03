@@ -31,6 +31,42 @@ An example using ethers.js :
   await provider.lookupAddress("0x20d884b4ea39b7A921009Cac517eaF057C797C74");
   // 'lisa.bnb'
 ```
+
+## Resolving Names On-chain
+
+First, we define some pared-down interfaces containing only the methods we need:
+```solidity
+  abstract contract BNS {
+      function resolver(bytes32 node) public virtual view returns (Resolver);
+  }
+
+  abstract contract Resolver {
+      function addr(bytes32 node) public virtual view returns (address);
+  }
+```
+
+For resolution, only the resolver function in the BNS contract is required; other methods permit looking up owners and updating BNS from within a contract that owns a name.
+ 
+With these definitions, looking up a name given its node hash is straightforward:
+```solidity
+  contract MyContract {
+      BNS bns = BNS(0x0000000092F9d53192ED545D9dF4fDE3C624cBf0);
+
+      function resolve(bytes32 node) public view returns(address) {
+          Resolver resolver = bns.resolver(node);
+          return resolver.addr(node);
+      }
+  }
+```
+
+While it is possible for a contract to process a human-readable name into a node hash, we highly recommend working with node hashes instead, as they are easier and more efficient to work with, and allow contracts to leave the complex work of normalizing the name to their callers outside the blockchain. Where a contract always resolves the same names, those names may be converted to a node hash and stored in the contract as a constant.
+```javascript
+  import { ethers } from "ethers";
+
+  ethers.utils.namehash('lisa.bnb')
+  //'0x7c598597a34a855304de2f260df015e92e1c119f8453b5bbdf09df62613e75bc'
+```
+
     
 ## Published Contracts
 
