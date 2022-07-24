@@ -7,6 +7,7 @@ import "./BaseRegistrar.sol";
 contract BaseRegistrarImplementation is ERC721, BaseRegistrar  {
     // A map of expiry times
     mapping(uint256=>uint) expiries;
+    string baseURI;
 
     bytes4 constant private INTERFACE_META_ID = bytes4(keccak256("supportsInterface(bytes4)"));
     bytes4 constant private ERC721_ID = bytes4(
@@ -36,9 +37,10 @@ contract BaseRegistrarImplementation is ERC721, BaseRegistrar  {
         return (spender == owner || getApproved(tokenId) == spender || isApprovedForAll(owner, spender));
     }
 
-    constructor(BNS _bns, bytes32 _baseNode) ERC721("","") {
+    constructor(BNS _bns, bytes32 _baseNode, string memory name, string memory symbol, string memory _base) ERC721(name, symbol) {
         bns = _bns;
         baseNode = _baseNode;
+        baseURI = _base;
     }
 
     modifier live {
@@ -88,6 +90,26 @@ contract BaseRegistrarImplementation is ERC721, BaseRegistrar  {
     function available(uint256 id) public view override returns(bool) {
         // Not available if it's registered here or in its grace period.
         return expiries[id] + GRACE_PERIOD < block.timestamp;
+    }
+    
+    function tokenURI(uint256 _tokenId) public view virtual override returns(string memory) {
+        require(_exists(_tokenId), "ERC721Metadata: URI set of nonexistent token");
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, Strings.toString(_tokenId))) : "";
+    }
+
+    function setBaseURI(string memory _base) external onlyOwner{
+        baseURI = _base;
+    }
+    
+    function claimOld(uint256 id) external {
+        require(!_exists(id), "This name is already mined");
+        IBase oldContract = IBase(0x5eE17161A6d2848ef0D15E6b6A1FcB7c3CE4896C);
+        require(msg.sender == oldContract.ownerOf(id), "You are not the owner of this name");
+        
+        uint duration = oldContract.nameExpires(id);
+        require(duration > block.timestamp, "This name is not expired");
+        expiries[id] = block.timestamp + duration;
+        _mint(msg.sender, id);
     }
 
     /**
