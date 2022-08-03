@@ -75,7 +75,7 @@ Contract Address
 {
     "BNSRegistry": "0x0000000092F9d53192ED545D9dF4fDE3C624cBf0",
     "PublicResolver": "0x7845714c84E0FEf80771f43299ce49117225eA64",
-    "BNBRegistrarController": "0x61962A414efA7adaE5E9c143889379062B4745dB",
+    "BNBRegistrarController": "0xB1F2463A0E0eCf767b74D8e7b24cdD4218207744",
     "ReverseRegistrar": "0x8E8f7FA693CB7753f9F6Ee8E3B317EcFDc1852E1",
     "BaseRegistrarImplementation": "0x9800B8198d105C142c67999f64b422B08db711e6"
 }
